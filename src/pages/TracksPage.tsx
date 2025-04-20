@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState } from 'react'
+import TrackList from './tracks/TrackList'
 
 function TracksPage() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <div className="p-4">
@@ -17,14 +18,17 @@ function TracksPage() {
         Create Track
       </button>
 
-      {/* Тут пізніше буде modal */}
+      {/* 📦 Список треків */}
+      <TrackList />
+
+      {/* 🔜 Модалка потім */}
       {isOpen && (
         <div className="mt-8 p-4 border border-gray-300 rounded bg-gray-100">
           Modal for Create Track (заглушка)
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default TracksPage;
+export default TracksPage
