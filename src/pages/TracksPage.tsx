@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import TrackList from './tracks/TrackList'
 import { getGenres } from '../api/genres'
+import CreateTrackModal, { TrackFormData } from '../components/CreateTrackModal'
 
 function TracksPage() {
   const [isOpen, setIsOpen] = useState(false)
@@ -48,7 +49,11 @@ function TracksPage() {
   const handleNextPage = () => {
     if (page < totalPages) setPage(page + 1)
   }
-
+  const handleCreateTrack = (trackData: TrackFormData) => {
+    console.log('Track created:', trackData)
+    setIsOpen(false)
+  }
+  
   return (
     <div className="p-4">
       <h1 data-testid="tracks-header" className="text-2xl font-bold mb-4">
@@ -122,11 +127,13 @@ function TracksPage() {
         setTotalPages={setTotalPages}
       />
 
-      {isOpen && (
-        <div className="mt-8 p-4 border border-gray-300 rounded bg-gray-100">
-          Modal for Create Track (заглушка)
-        </div>
-      )}
+{isOpen && (
+  <CreateTrackModal
+    onClose={() => setIsOpen(false)}
+    onSubmit={handleCreateTrack}
+  />
+)}
+
     </div>
   )
 }

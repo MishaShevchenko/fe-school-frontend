@@ -1,4 +1,5 @@
 
+import { TrackFormData } from '../components/CreateTrackModal';
 import api from './axios';
 
 type GetTracksParams = {
@@ -17,8 +18,9 @@ export const getTracks = async (params: GetTracksParams = {}) => {
 
 
 
-export const createTrack = async (trackData:string) => {
-  const response = await api.post('/tracks', trackData);
+export const createTrack = async (trackData: TrackFormData) => {
+  const response = await api.post('/api/tracks', trackData);
   return response.data;
 };
+
 
