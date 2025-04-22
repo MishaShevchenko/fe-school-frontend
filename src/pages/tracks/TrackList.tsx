@@ -25,7 +25,6 @@ const TrackList = ({
   const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(true)
   const [editingTrack, setEditingTrack] = useState<Track | null>(null)
-  const [allGenres, setAllGenres] = useState<string[]>([])
 
   const fetchTracks = async () => {
     try {
@@ -45,19 +44,6 @@ const TrackList = ({
     fetchTracks()
   }, [page, limit, sort, order, search, genre])
 
-  useEffect(() => {
-    const fetchGenres = async () => {
-      try {
-        const res = await fetch('/api/genres')
-        const genres = await res.json()
-        setAllGenres(genres)
-      } catch (error) {
-        console.error('Failed to fetch genres:', error)
-      }
-    }
-
-    fetchGenres()
-  }, [])
 
   if (loading) return <div>Loading tracks...</div>
 
@@ -84,11 +70,9 @@ const TrackList = ({
 
       {editingTrack && (
         <EditTrackModal
-          isOpen={true}
           track={editingTrack}
           onClose={() => setEditingTrack(null)}
-          onTrackUpdated={fetchTracks}
-          allGenres={allGenres}
+          onSave={fetchTracks}
         />
       )}
     </div>

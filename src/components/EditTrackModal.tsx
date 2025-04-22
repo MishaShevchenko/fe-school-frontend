@@ -1,4 +1,3 @@
-// components/TrackList/EditTrackModal.tsx
 import { useEffect, useState } from 'react'
 import { Track } from '../types'
 import { getGenres } from '../api/genres'
@@ -16,7 +15,12 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    getGenres().then(setGenres).catch(() => setGenres([]))
+    getGenres()
+      .then(setGenres)
+      .catch((error) => {
+        console.error('Failed to fetch genres:', error)
+        setGenres([])
+      })
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,7 +29,7 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
 
   const handleGenresChange = (genre: string) => {
     const newGenres = formData.genres?.includes(genre)
-      ? formData.genres.filter(g => g !== genre)
+      ? formData.genres.filter((g) => g !== genre)
       : [...(formData.genres || []), genre]
 
     setFormData({ ...formData, genres: newGenres })
