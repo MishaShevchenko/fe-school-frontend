@@ -11,7 +11,7 @@ export type TrackFormData = {
 
 interface CreateTrackModalProps {
   onClose: () => void;
-  onSubmit?: (track: TrackFormData) => void; 
+  onSubmit?: (track: TrackFormData) => void;
 }
 
 export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModalProps) {
@@ -26,21 +26,47 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
     genres: "",
   });
   const [audioFile, setAudioFile] = useState<File | undefined>(undefined);
+  const [audioError, setAudioError] = useState("");
 
   const validate = () => {
     const newErrors = { title: "", artist: "", genres: "" };
-    if (!title.trim()) newErrors.title = "Title is required";
-    if (!artist.trim()) newErrors.artist = "Artist is required";
-    if (genres.length === 0) newErrors.genres = "At least one genre required";
+    let isValid = true;
+
+    if (!title.trim()) {
+      newErrors.title = "Title is required";
+      isValid = false;
+    }
+    if (!artist.trim()) {
+      newErrors.artist = "Artist is required";
+      isValid = false;
+    }
+    if (genres.length === 0) {
+      newErrors.genres = "At least one genre required";
+      isValid = false;
+    }
+
+    if (!audioFile) {
+      setAudioError("Audio file is required");
+      isValid = false;
+    } else if (audioFile.type !== "audio/mpeg") {
+      setAudioError("Only MP3 files are allowed");
+      isValid = false;
+    } else if (audioFile.size > 10 * 1024 * 1024) {
+      setAudioError("File size should not exceed 10MB");
+      isValid = false;
+    } else {
+      setAudioError("");
+    }
+
     setErrors(newErrors);
-    return Object.values(newErrors).every((e) => !e);
+    return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const track: TrackFormData  & { audioFile?: File } = {
+    const track: TrackFormData & { audioFile?: File } = {
       title,
       artist,
       album,
@@ -160,49 +186,45 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
           )}
         </div>
 
+        <div className="space-y-2 w-full">
+          <label htmlFor="audio" className="block text-sm font-medium">
+            Audio File
+          </label>
+          <input
+            data-testid="audio-input"
+            id="audio"
+            type="file"
+            accept="audio/mpeg"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setAudioFile(file);
+              }
+            }}
+            className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white file:font-semibold"
+          />
+
+          {audioError && (
+            <p className="text-red-500 text-sm" data-testid="error-audio">
+              {audioError}
+            </p>
+          )}
+
+          {audioFile && (
+            <div className="flex items-center justify-between bg-gray-100 rounded p-2 mt-2">
+              <span className="text-sm truncate max-w-[200px]">{audioFile.name}</span>
+              <button
+                type="button"
+                className="text-red-500 text-sm"
+                onClick={() => setAudioFile(undefined)}
+              >
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="flex justify-end gap-2">
-        <input
-  data-testid="input-cover-image"
-  type="text"
-  placeholder="Cover Image URL"
-  className="input w-full"
-  value={coverImage}
-  onChange={(e) => setCoverImage(e.target.value)}
-/>
-
-<div className="space-y-2 w-full">
-  <label htmlFor="audio" className="block text-sm font-medium">
-    Audio File
-  </label>
-  <input
-    data-testid="audio-input"
-    id="audio"
-    type="file"
-    accept="audio/mpeg"
-    onChange={(e) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        setAudioFile(file);
-      }
-    }}
-    className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white file:font-semibold"
-  />
-
-  {audioFile && (
-    <div className="flex items-center justify-between bg-gray-100 rounded p-2 mt-2">
-      <span className="text-sm truncate max-w-[200px]">{audioFile.name}</span>
-      <button
-        type="button"
-        className="text-red-500 text-sm"
-        onClick={() => setAudioFile(undefined)}
-      >
-        Remove
-      </button>
-    </div>
-  )}
-</div>
-
-
           <button
             type="button"
             onClick={onClose}
