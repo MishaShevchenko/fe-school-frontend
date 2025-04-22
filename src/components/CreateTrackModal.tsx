@@ -25,6 +25,7 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
     artist: "",
     genres: "",
   });
+  const [audioFile, setAudioFile] = useState<File | undefined>(undefined);
 
   const validate = () => {
     const newErrors = { title: "", artist: "", genres: "" };
@@ -39,12 +40,13 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
     e.preventDefault();
     if (!validate()) return;
 
-    const track: TrackFormData = {
+    const track: TrackFormData  & { audioFile?: File } = {
       title,
       artist,
       album,
       genres,
       coverImage,
+      audioFile,
     };
 
     try {
@@ -159,6 +161,48 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
         </div>
 
         <div className="flex justify-end gap-2">
+        <input
+  data-testid="input-cover-image"
+  type="text"
+  placeholder="Cover Image URL"
+  className="input w-full"
+  value={coverImage}
+  onChange={(e) => setCoverImage(e.target.value)}
+/>
+
+<div className="space-y-2 w-full">
+  <label htmlFor="audio" className="block text-sm font-medium">
+    Audio File
+  </label>
+  <input
+    data-testid="audio-input"
+    id="audio"
+    type="file"
+    accept="audio/mpeg"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        setAudioFile(file);
+      }
+    }}
+    className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white file:font-semibold"
+  />
+
+  {audioFile && (
+    <div className="flex items-center justify-between bg-gray-100 rounded p-2 mt-2">
+      <span className="text-sm truncate max-w-[200px]">{audioFile.name}</span>
+      <button
+        type="button"
+        className="text-red-500 text-sm"
+        onClick={() => setAudioFile(undefined)}
+      >
+        Remove
+      </button>
+    </div>
+  )}
+</div>
+
+
           <button
             type="button"
             onClick={onClose}

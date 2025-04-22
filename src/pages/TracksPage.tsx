@@ -18,11 +18,15 @@ function TracksPage() {
     const fetchGenres = async () => {
       try {
         const data = await getGenres()
-        setGenres(['All Genres', ...data])
+        const allGenres = ['All Genres', ...data]
+        const uniqueGenres = Array.from(new Set(allGenres)) 
+        setGenres(uniqueGenres)
       } catch (error) {
         console.error('Failed to load genres:', error)
       }
     }
+    
+    
 
     fetchGenres()
   }, [])
@@ -92,11 +96,13 @@ function TracksPage() {
         value={genre || 'All Genres'}
         onChange={handleGenreChange}
       >
-        {genres.map((g) => (
-          <option key={g} value={g}>
-            {g}
-          </option>
-        ))}
+      {genres.map((genre) => (
+  <option key={genre} value={genre}>
+    {genre}
+  </option>
+))}
+
+
       </select>
 
       <div data-testid="pagination" className="my-4 space-x-4">
