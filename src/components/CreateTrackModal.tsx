@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createTrack } from "../api/tracks";
+import { toast } from "react-toastify";
+import api from "../api/axios";
 
 export type TrackFormData = {
   title: string;
@@ -20,13 +22,22 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
   const [album, setAlbum] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [genres, setGenres] = useState<string[]>([]);
-  const [errors, setErrors] = useState({
-    title: "",
-    artist: "",
-    genres: "",
-  });
-  const [audioFile, setAudioFile] = useState<File | undefined>(undefined);
+  const [allGenres, setAllGenres] = useState<string[]>([]);
+  const [errors, setErrors] = useState({ title: "", artist: "", genres: "" });
+  const [audioFile, setAudioFile] = useState<File | undefined>();
   const [audioError, setAudioError] = useState("");
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await api.get("/api/genres");
+        setAllGenres(response.data);
+      } catch {
+        toast.error("Failed to load genres");
+      }
+    };
+    fetchGenres();
+  }, []);
 
   const validate = () => {
     const newErrors = { title: "", artist: "", genres: "" };
@@ -41,7 +52,7 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
       isValid = false;
     }
     if (genres.length === 0) {
-      newErrors.genres = "At least one genre required";
+      newErrors.genres = "At least one genre is required";
       isValid = false;
     }
 
@@ -52,7 +63,7 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
       setAudioError("Only MP3 files are allowed");
       isValid = false;
     } else if (audioFile.size > 10 * 1024 * 1024) {
-      setAudioError("File size should not exceed 10MB");
+      setAudioError("File size must not exceed 10MB");
       isValid = false;
     } else {
       setAudioError("");
@@ -66,21 +77,29 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
     e.preventDefault();
     if (!validate()) return;
 
-    const track: TrackFormData & { audioFile?: File } = {
+    const newTrack = {
       title,
       artist,
       album,
-      genres,
       coverImage,
-      audioFile,
+      genres,
     };
 
     try {
-      await createTrack(track);
-      if (onSubmit) onSubmit(track);
+      const createdTrack = await createTrack(newTrack);
+
+      if (audioFile) {
+        const formData = new FormData();
+        formData.append("file", audioFile);
+        await api.post(`/api/tracks/${createdTrack.id}/upload`, formData);
+      }
+
+      toast.success(`Track "${title}" was created successfully 🎉`);
+      if (onSubmit) onSubmit(createdTrack);
       onClose();
-    } catch (error) {
-      console.error("Failed to create track:", error);
+    } catch (err) {
+      console.error("Failed to create track:", err);
+      toast.error("Failed to create track. Please try again.");
     }
   };
 
@@ -93,37 +112,25 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
       >
         <h2 className="text-xl font-bold">Create Track</h2>
 
-        <div>
-          <input
-            data-testid="input-title"
-            type="text"
-            placeholder="Title"
-            className="input w-full"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          {errors.title && (
-            <p className="text-red-500 text-sm" data-testid="error-title">
-              {errors.title}
-            </p>
-          )}
-        </div>
+        <input
+          data-testid="input-title"
+          type="text"
+          placeholder="Title"
+          className="input w-full"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        {errors.title && <p className="text-red-500 text-sm" data-testid="error-title">{errors.title}</p>}
 
-        <div>
-          <input
-            data-testid="input-artist"
-            type="text"
-            placeholder="Artist"
-            className="input w-full"
-            value={artist}
-            onChange={(e) => setArtist(e.target.value)}
-          />
-          {errors.artist && (
-            <p className="text-red-500 text-sm" data-testid="error-artist">
-              {errors.artist}
-            </p>
-          )}
-        </div>
+        <input
+          data-testid="input-artist"
+          type="text"
+          placeholder="Artist"
+          className="input w-full"
+          value={artist}
+          onChange={(e) => setArtist(e.target.value)}
+        />
+        {errors.artist && <p className="text-red-500 text-sm" data-testid="error-artist">{errors.artist}</p>}
 
         <input
           data-testid="input-album"
@@ -145,49 +152,45 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
 
         <div>
           <label className="block mb-1">Genres</label>
-          <div
-            data-testid="genre-selector"
-            className="flex flex-wrap gap-2 border p-2 rounded"
-          >
-            {genres.map((g, i) => (
-              <span
-                key={i}
-                className="bg-gray-200 rounded px-2 py-1 flex items-center"
-              >
-                {g}
+          <div className="flex flex-wrap gap-2 border p-2 rounded" data-testid="genre-selector">
+            {genres.map((genre, i) => (
+              <span key={i} className="bg-gray-200 rounded px-2 py-1 flex items-center">
+                {genre}
                 <button
                   type="button"
                   className="ml-2 text-red-500"
-                  onClick={() =>
-                    setGenres(genres.filter((genre) => genre !== g))
-                  }
+                  onClick={() => setGenres(genres.filter((g) => g !== genre))}
                 >
                   ×
                 </button>
               </span>
             ))}
-            <button
-              type="button"
-              className="text-blue-500 underline"
-              onClick={() => {
-                const newGenre = prompt("Add Genre:");
-                if (newGenre && !genres.includes(newGenre)) {
-                  setGenres([...genres, newGenre]);
+
+            <select
+              className="input"
+              onChange={(e) => {
+                const selected = e.target.value;
+                if (selected && !genres.includes(selected)) {
+                  setGenres([...genres, selected]);
                 }
               }}
+              defaultValue=""
             >
-              + Add
-            </button>
+              <option value="" disabled>
+                Select genre
+              </option>
+              {allGenres.map((g, i) => (
+                <option key={i} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
           </div>
-          {errors.genres && (
-            <p className="text-red-500 text-sm" data-testid="error-genre">
-              {errors.genres}
-            </p>
-          )}
+          {errors.genres && <p className="text-red-500 text-sm" data-testid="error-genre">{errors.genres}</p>}
         </div>
 
-        <div className="space-y-2 w-full">
-          <label htmlFor="audio" className="block text-sm font-medium">
+        <div>
+          <label htmlFor="audio" className="block mb-1">
             Audio File
           </label>
           <input
@@ -197,46 +200,30 @@ export default function CreateTrackModal({ onClose, onSubmit }: CreateTrackModal
             accept="audio/mpeg"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) {
-                setAudioFile(file);
-              }
+              if (file) setAudioFile(file);
             }}
-            className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white file:font-semibold"
           />
-
-          {audioError && (
-            <p className="text-red-500 text-sm" data-testid="error-audio">
-              {audioError}
-            </p>
-          )}
-
-          {audioFile && (
-            <div className="flex items-center justify-between bg-gray-100 rounded p-2 mt-2">
-              <span className="text-sm truncate max-w-[200px]">{audioFile.name}</span>
-              <button
-                type="button"
-                className="text-red-500 text-sm"
-                onClick={() => setAudioFile(undefined)}
-              >
-                Remove
-              </button>
-            </div>
-          )}
+          {audioError && <p className="text-red-500 text-sm" data-testid="error-audio">{audioError}</p>}
         </div>
 
+        {audioFile && (
+          <div className="bg-gray-100 p-2 rounded flex items-center justify-between mt-2">
+            <span className="text-sm truncate">{audioFile.name}</span>
+            <button
+              type="button"
+              className="text-red-500 text-sm"
+              onClick={() => setAudioFile(undefined)}
+            >
+              Remove
+            </button>
+          </div>
+        )}
+
         <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="bg-gray-300 px-4 py-2 rounded"
-          >
+          <button type="button" onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
             Cancel
           </button>
-          <button
-            type="submit"
-            data-testid="submit-button"
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-          >
+          <button type="submit" data-testid="submit-button" className="bg-blue-500 text-white px-4 py-2 rounded">
             Save
           </button>
         </div>

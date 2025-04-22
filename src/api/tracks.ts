@@ -28,3 +28,10 @@ export const updateTrack = async (id: number, data: Partial<Track>) => {
   return response.data
 }
 
+export const deleteTrack = async (id: number| string) => {
+  const response = await api.delete(`api/tracks/${id}`)
+  return response.data
+}
+
+
+
