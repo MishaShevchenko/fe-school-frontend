@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getTracks, deleteTrack } from '../../api/tracks'
 import EditTrackModal from '../../components/EditTrackModal'
+import AudioPlayer from '../../components/AudioPlayer'
 import { Track } from '../../types'
 import { toast } from 'react-hot-toast'
 
@@ -28,6 +29,7 @@ const TrackList = ({
   const [editingTrack, setEditingTrack] = useState<Track | null>(null)
   const [trackToDelete, setTrackToDelete] = useState<Track | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null)
 
   const fetchTracks = async () => {
     try {
@@ -54,30 +56,44 @@ const TrackList = ({
       {tracks.map((track) => (
         <div
           key={track.id}
-          className="border p-2 my-2 rounded flex justify-between items-center"
+          className="border p-2 my-2 rounded"
           data-testid={`track-item-${track.id}`}
         >
-          <div>
-            <div data-testid={`track-item-${track.id}-title`}><strong>{track.title}</strong></div>
-            <div data-testid={`track-item-${track.id}-artist`}>{track.artist}</div>
-            <div>{track.album}</div>
+          <div className="flex justify-between items-center">
+            <div>
+              <div data-testid={`track-item-${track.id}-title`}><strong>{track.title}</strong></div>
+              <div data-testid={`track-item-${track.id}-artist`}>{track.artist}</div>
+              <div>{track.album}</div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                data-testid={`edit-track-${track.id}`}
+                onClick={() => setEditingTrack(track)}
+                className="text-blue-500 hover:underline"
+              >
+                Edit
+              </button>
+              <button
+                data-testid={`delete-track-${track.id}`}
+                onClick={() => setTrackToDelete(track)}
+                className="text-red-500 hover:underline"
+              >
+                Delete
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              data-testid={`edit-track-${track.id}`}
-              onClick={() => setEditingTrack(track)}
-              className="text-blue-500 hover:underline"
-            >
-              Edit
-            </button>
-            <button
-              data-testid={`delete-track-${track.id}`}
-              onClick={() => setTrackToDelete(track)}
-              className="text-red-500 hover:underline"
-            >
-              Delete
-            </button>
-          </div>
+
+          {track.audioFile && (
+            <div className="mt-2">
+              <AudioPlayer
+                id={String(track.id)}
+                src={track.audioFile}
+                isPlaying={playingTrackId === String(track.id)}
+                onPlay={() => setPlayingTrackId(String(track.id))}
+                onPause={() => setPlayingTrackId(null)}
+              />
+            </div>
+          )}
         </div>
       ))}
 
@@ -110,7 +126,7 @@ const TrackList = ({
                 onClick={async () => {
                   try {
                     setDeleting(true)
-                    await deleteTrack(trackToDelete.id.toString())
+                    await deleteTrack(trackToDelete.id)
                     await fetchTracks()
                     toast.success('Track deleted successfully')
                   } catch {

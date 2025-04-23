@@ -2,6 +2,19 @@
 import { TrackFormData } from '../components/CreateTrackModal';
 import { Track } from '../types';
 import api from './axios';
+export async function replaceAudioFile(trackId: string, file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post(`/api/tracks/${trackId}/upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
+}
+
 
 type GetTracksParams = {
   page?: number;
