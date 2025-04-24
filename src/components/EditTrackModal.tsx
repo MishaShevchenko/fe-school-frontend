@@ -41,12 +41,15 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
       setError('Please fill in all required fields.');
       return;
     }
-
+  
     try {
       await updateTrack(track.id, formData);
+  
       if (newAudioFile) {
-        await replaceAudioFile(track.id.toString(), newAudioFile);
+        const response = await replaceAudioFile(track.id.toString(), newAudioFile);
+        console.log('Uploaded audio response:', response); 
       }
+  
       onSave();
       onClose();
     } catch (err: any) {
@@ -54,6 +57,7 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
       setError(err.message || 'Failed to save changes.');
     }
   };
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
