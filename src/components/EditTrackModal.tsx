@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Track } from '../types'
-import { getGenres } from '../api/genres'
-import { updateTrack } from '../api/tracks'
-import { replaceAudioFile } from '../api/tracks'
+import { useEffect, useState } from 'react';
+import { Track } from '../types';
+import { getGenres } from '../api/genres';
+import { updateTrack, replaceAudioFile } from '../api/tracks';
 
 type Props = {
   track: Track;
@@ -41,15 +40,22 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
       setError('Please fill in all required fields.');
       return;
     }
-  
+
+    if (
+      formData.coverImage &&
+      !/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(formData.coverImage)
+    ) {
+      setError('Invalid image URL format (must end with .jpg, .png, etc.)');
+      return;
+    }
+
     try {
       await updateTrack(track.id, formData);
-  
+
       if (newAudioFile) {
-        const response = await replaceAudioFile(track.id.toString(), newAudioFile);
-        console.log('Uploaded audio response:', response); 
+        await replaceAudioFile(track.id.toString(), newAudioFile);
       }
-  
+
       onSave();
       onClose();
     } catch (err: any) {
@@ -57,7 +63,6 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
       setError(err.message || 'Failed to save changes.');
     }
   };
-  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -89,6 +94,22 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
           data-testid="input-album"
         />
 
+        <input
+          name="coverImage"
+          type="url"
+          placeholder="Cover image URL"
+          value={formData.coverImage || ''}
+          onChange={handleChange}
+          className="w-full p-2 border rounded mb-2"
+          data-testid="input-cover-image"
+        />
+        {formData.coverImage &&
+          !/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(formData.coverImage) && (
+            <div className="text-red-500 text-sm mb-2" data-testid="error-coverImage">
+              Invalid image URL format (must be .jpg, .png, etc.)
+            </div>
+          )}
+
         <div className="mb-2">
           <p className="mb-1 font-medium">Genres:</p>
           {genres.map((g) => (
@@ -118,10 +139,7 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
         />
 
         <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="bg-gray-300 px-4 py-2 rounded"
-          >
+          <button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
             Cancel
           </button>
           <button
