@@ -36,9 +36,6 @@ const TrackList = ({
       setLoading(true)
       const params = { page, limit, sort, order, search, genre }
       const response = await getTracks(params)
-
-      console.log('🎧 Tracks from server:', response.data) 
-
       setTracks(response.data)
       setTotalPages(response.meta.totalPages)
     } catch (error) {
@@ -56,57 +53,49 @@ const TrackList = ({
 
   return (
     <div data-testid="track-list">
-      {tracks.map((track) => {
-        const fullAudioPath = track.audioFile
-          ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/uploads/${track.audioFile}`
-          : 'N/A'
-
-        console.log(`🎵 Track: ${track.title}, audioFile: ${track.audioFile}, fullPath: ${fullAudioPath}`)
-
-        return (
-          <div
-            key={track.id}
-            className="border p-2 my-2 rounded"
-            data-testid={`track-item-${track.id}`}
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <div data-testid={`track-item-${track.id}-title`}><strong>{track.title}</strong></div>
-                <div data-testid={`track-item-${track.id}-artist`}>{track.artist}</div>
-                <div>{track.album}</div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  data-testid={`edit-track-${track.id}`}
-                  onClick={() => setEditingTrack(track)}
-                  className="text-blue-500 hover:underline"
-                >
-                  Edit
-                </button>
-                <button
-                  data-testid={`delete-track-${track.id}`}
-                  onClick={() => setTrackToDelete(track)}
-                  className="text-red-500 hover:underline"
-                >
-                  Delete
-                </button>
-              </div>
+      {tracks.map((track) => (
+        <div
+          key={track.id}
+          className="border p-2 my-2 rounded"
+          data-testid={`track-item-${track.id}`}
+        >
+          <div className="flex justify-between items-center">
+            <div>
+              <div data-testid={`track-item-${track.id}-title`}><strong>{track.title}</strong></div>
+              <div data-testid={`track-item-${track.id}-artist`}>{track.artist}</div>
+              <div>{track.album}</div>
             </div>
-
-            {track.audioFile && (
-              <div className="mt-2">
-                <AudioPlayer
-                  id={String(track.id)}
-                  src={`${track.audioFile}`}
-                  isPlaying={playingTrackId === String(track.id)}
-                  onPlay={() => setPlayingTrackId(String(track.id))}
-                  onPause={() => setPlayingTrackId(null)}
-                />
-              </div>
-            )}
+            <div className="flex gap-2">
+              <button
+                data-testid={`edit-track-${track.id}`}
+                onClick={() => setEditingTrack(track)}
+                className="text-blue-500 hover:underline"
+              >
+                Edit
+              </button>
+              <button
+                data-testid={`delete-track-${track.id}`}
+                onClick={() => setTrackToDelete(track)}
+                className="text-red-500 hover:underline"
+              >
+                Delete
+              </button>
+            </div>
           </div>
-        )
-      })}
+
+          {track.audioFile && (
+            <div className="mt-2">
+              <AudioPlayer
+                id={String(track.id)}
+                src={track.audioFile}
+                isPlaying={playingTrackId === String(track.id)}
+                onPlay={() => setPlayingTrackId(String(track.id))}
+                onPause={() => setPlayingTrackId(null)}
+              />
+            </div>
+          )}
+        </div>
+      ))}
 
       {editingTrack && (
         <EditTrackModal
@@ -149,7 +138,6 @@ const TrackList = ({
                 }}
                 className="bg-red-500 text-white px-4 py-2 rounded"
                 disabled={deleting}
-                aria-disabled={deleting}
               >
                 {deleting ? 'Deleting...' : 'Delete'}
               </button>

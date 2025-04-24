@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 
 type Props = {
   id: string | number
-  src: string
+  src: string // ожидается имя файла: 1745496262860.mp3
   isPlaying: boolean
   onPlay: () => void
   onPause: () => void
@@ -12,7 +12,8 @@ const AudioPlayer = ({ id, src, isPlaying, onPlay, onPause }: Props) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [progress, setProgress] = useState(0)
 
-  const fullAudioSrc = `${import.meta.env.VITE_API_URL}/uploads/${src}`
+  // Новый путь к файлу
+  const fullAudioSrc = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/files/${src}`
 
   useEffect(() => {
     const audio = audioRef.current
@@ -26,21 +27,18 @@ const AudioPlayer = ({ id, src, isPlaying, onPlay, onPause }: Props) => {
 
     if (isPlaying) {
       if (audio.readyState >= 3) {
-        // Если уже готов — просто играем
         handlePlay()
       } else {
-        // Если нет — ждём canplay
         audio.addEventListener('canplay', handlePlay, { once: true })
       }
     } else {
       audio.pause()
     }
 
-    // Чистим слушатель при размонтировании или переключении
     return () => {
       audio.removeEventListener('canplay', handlePlay)
     }
-  }, [isPlaying, fullAudioSrc]) // важно следить за fullAudioSrc
+  }, [isPlaying, fullAudioSrc])
 
   const handleTimeUpdate = () => {
     const audio = audioRef.current
@@ -63,7 +61,7 @@ const AudioPlayer = ({ id, src, isPlaying, onPlay, onPause }: Props) => {
   return (
     <div data-testid={`audio-player-${id}`} className="mt-2 w-full">
       <audio
-       key={fullAudioSrc}
+        key={fullAudioSrc}
         ref={audioRef}
         src={fullAudioSrc}
         onTimeUpdate={handleTimeUpdate}

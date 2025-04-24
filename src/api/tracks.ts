@@ -47,6 +47,3 @@ export const deleteTrack = async (id: number| string) => {
   const response = await api.delete(`api/tracks/${id}`)
   return response.data
 }
-
-
-
