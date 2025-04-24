@@ -70,48 +70,52 @@ function TracksPage() {
         Track List
       </h1>
 
-      <button
-        className="px-4 py-2 bg-blue-600 text-white rounded"
-        onClick={() => setIsOpen(true)}
-        data-testid="create-track-button"
-      >
-        Create Track
-      </button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded w-full sm:w-auto"
+          onClick={() => setIsOpen(true)}
+          data-testid="create-track-button"
+        >
+          Create Track
+        </button>
 
-      <input
-        className="mx-4 px-4 py-2 bg-white border rounded"
-        placeholder="Search..."
-        onChange={handleSearchChange}
-        data-testid="search-input"
-      />
+        <div className="flex gap-4 mt-4 sm:mt-0">
+          <input
+            className="px-4 py-2 bg-white border rounded w-full sm:w-auto"
+            placeholder="Search..."
+            onChange={handleSearchChange}
+            data-testid="search-input"
+          />
 
-      <select
-        className="py-2 px-4 border rounded"
-        value={sort}
-        onChange={handleSortChange}
-        data-testid="sort-select"
-      >
-        <option value="title">Title</option>
-        <option value="artist">Artist</option>
-      </select>
+          <select
+            className="py-2 px-4 border rounded w-full sm:w-auto"
+            value={sort}
+            onChange={handleSortChange}
+            data-testid="sort-select"
+          >
+            <option value="title">Title</option>
+            <option value="artist">Artist</option>
+          </select>
 
-      <select
-        className="mx-4 px-4 py-2 border rounded"
-        value={genre || 'All Genres'}
-        onChange={handleGenreChange}
-        data-testid="filter-genre"
-      >
-        {genres.map((g) => (
-          <option key={g} value={g}>
-            {g}
-          </option>
-        ))}
-      </select>
+          <select
+            className="px-4 py-2 border rounded w-full sm:w-auto"
+            value={genre || 'All Genres'}
+            onChange={handleGenreChange}
+            data-testid="filter-genre"
+          >
+            {genres.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <div className="my-4 space-x-4" data-testid="pagination">
         <button
           onClick={handlePrevPage}
-          className="px-3 py-1 bg-blue-500 text-white rounded"
+          className="px-3 py-1 bg-blue-500 text-white rounded w-full sm:w-auto"
           data-testid="pagination-prev"
         >
           Previous
@@ -119,7 +123,7 @@ function TracksPage() {
         <span>Page {page} of {totalPages}</span>
         <button
           onClick={handleNextPage}
-          className="px-3 py-1 bg-blue-500 text-white rounded"
+          className="px-3 py-1 bg-blue-500 text-white rounded w-full sm:w-auto"
           data-testid="pagination-next"
         >
           Next
