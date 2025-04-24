@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import TrackList from './tracks/TrackList';
 import { getGenres } from '../api/genres';
 import CreateTrackModal, { TrackFormData } from '../components/CreateTrackModal';
+import debounce from 'lodash.debounce';
 
 function TracksPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [sort, setSort] = useState('title');
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [search, setSearch] = useState('');
   const [genre, setGenre] = useState('');
   const [totalPages, setTotalPages] = useState(1);
@@ -29,9 +29,16 @@ function TracksPage() {
     fetchGenres();
   }, []);
 
+  const debouncedSearchChange = useCallback(
+    debounce((value: string) => {
+      setSearch(value);
+      setPage(1);
+    }, 400),
+    []
+  );
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    setPage(1);
+    debouncedSearchChange(e.target.value);
   };
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -59,11 +66,14 @@ function TracksPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Track List</h1>
+      <h1 className="text-2xl font-bold mb-4" data-testid="tracks-header">
+        Track List
+      </h1>
 
       <button
         className="px-4 py-2 bg-blue-600 text-white rounded"
         onClick={() => setIsOpen(true)}
+        data-testid="create-track-button"
       >
         Create Track
       </button>
@@ -71,14 +81,15 @@ function TracksPage() {
       <input
         className="mx-4 px-4 py-2 bg-white border rounded"
         placeholder="Search..."
-        value={search}
         onChange={handleSearchChange}
+        data-testid="search-input"
       />
 
       <select
         className="py-2 px-4 border rounded"
         value={sort}
         onChange={handleSortChange}
+        data-testid="sort-select"
       >
         <option value="title">Title</option>
         <option value="artist">Artist</option>
@@ -88,6 +99,7 @@ function TracksPage() {
         className="mx-4 px-4 py-2 border rounded"
         value={genre || 'All Genres'}
         onChange={handleGenreChange}
+        data-testid="filter-genre"
       >
         {genres.map((g) => (
           <option key={g} value={g}>
@@ -96,10 +108,11 @@ function TracksPage() {
         ))}
       </select>
 
-      <div className="my-4 space-x-4">
+      <div className="my-4 space-x-4" data-testid="pagination">
         <button
           onClick={handlePrevPage}
           className="px-3 py-1 bg-blue-500 text-white rounded"
+          data-testid="pagination-prev"
         >
           Previous
         </button>
@@ -107,6 +120,7 @@ function TracksPage() {
         <button
           onClick={handleNextPage}
           className="px-3 py-1 bg-blue-500 text-white rounded"
+          data-testid="pagination-next"
         >
           Next
         </button>
