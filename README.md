@@ -10,6 +10,12 @@ A simple music track management app built with React and TypeScript.
 - Filter by genre, artist, or title
 - Form validation and error handling
 
+## 🧪 Extra Tasks
+
+- Added unit tests for form validation using Vitest + Testing Library
+- Configured Vitest and global types for test environment
+- Used `data-testid` for targeting elements in tests
+
 ## 🛠️ Tech Stack
 
 - React + TypeScript
@@ -18,8 +24,9 @@ A simple music track management app built with React and TypeScript.
 - REST API
 - Testing-ready with `data-testid` attributes
 
-🧪 Testing
-This app includes data-testid attributes for all key UI elements to support Testing Library or Jest-based testing.
+🧪 Run tests
+
+npx vitest
 
 ## 💻 Getting Started
 
