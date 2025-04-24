@@ -35,17 +35,23 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
     setFormData({ ...formData, genres: newGenres });
   };
 
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.title || !formData.artist || !formData.album) {
       setError('Please fill in all required fields.');
       return;
     }
 
-    if (
-      formData.coverImage &&
-      !/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(formData.coverImage)
-    ) {
-      setError('Invalid image URL format (must end with .jpg, .png, etc.)');
+    if (formData.coverImage && !isValidUrl(formData.coverImage)) {
+      setError('Invalid image URL.');
       return;
     }
 
@@ -75,7 +81,6 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
           onChange={handleChange}
           className="w-full p-2 border rounded mb-2"
           placeholder="Title"
-          data-testid="input-title"
         />
         <input
           name="artist"
@@ -83,7 +88,6 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
           onChange={handleChange}
           className="w-full p-2 border rounded mb-2"
           placeholder="Artist"
-          data-testid="input-artist"
         />
         <input
           name="album"
@@ -91,7 +95,6 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
           onChange={handleChange}
           className="w-full p-2 border rounded mb-2"
           placeholder="Album"
-          data-testid="input-album"
         />
 
         <input
@@ -101,14 +104,12 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
           value={formData.coverImage || ''}
           onChange={handleChange}
           className="w-full p-2 border rounded mb-2"
-          data-testid="input-cover-image"
         />
-        {formData.coverImage &&
-          !/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(formData.coverImage) && (
-            <div className="text-red-500 text-sm mb-2" data-testid="error-coverImage">
-              Invalid image URL format (must be .jpg, .png, etc.)
-            </div>
-          )}
+        {formData.coverImage && !isValidUrl(formData.coverImage) && (
+          <div className="text-red-500 text-sm mb-2">
+            Invalid image URL
+          </div>
+        )}
 
         <div className="mb-2">
           <p className="mb-1 font-medium">Genres:</p>
@@ -135,7 +136,6 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
             }
           }}
           className="w-full mb-2"
-          data-testid="audio-input"
         />
 
         <div className="flex justify-end gap-2">
@@ -145,7 +145,6 @@ export default function EditTrackModal({ track, onClose, onSave }: Props) {
           <button
             onClick={handleSubmit}
             className="bg-blue-500 text-white px-4 py-2 rounded"
-            data-testid="submit-button"
           >
             Save
           </button>

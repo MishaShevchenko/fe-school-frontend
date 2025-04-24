@@ -30,6 +30,7 @@ const TrackList = ({
   const [trackToDelete, setTrackToDelete] = useState<Track | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
+  const [erroredImages, setErroredImages] = useState<Record<number, boolean>>({});
 
   const fetchTracks = async () => {
     try {
@@ -49,6 +50,13 @@ const TrackList = ({
     fetchTracks();
   }, [page, limit, sort, order, search, genre]);
 
+  const getSafeImageSrc = (url?: string) => {
+    if (!url || typeof url !== 'string' || !/^https?:\/\//.test(url)) {
+      return '';
+    }
+    return url;
+  };
+
   if (loading) return <div data-testid="loading-tracks">Loading tracks...</div>;
 
   return (
@@ -61,11 +69,21 @@ const TrackList = ({
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <img
-                src={track.coverImage || '/default-cover.jpg'}
-                alt="Cover"
-                className="w-16 h-16 object-cover rounded"
-              />
+              {!erroredImages[track.id] && getSafeImageSrc(track.coverImage) ? (
+                <img
+                  src={getSafeImageSrc(track.coverImage)}
+                  alt="Cover"
+                  onError={() =>
+                    setErroredImages((prev) => ({ ...prev, [track.id]: true }))
+                  }
+                  className="w-16 h-16 object-cover rounded"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs text-center p-1">
+                  {track.title}
+                </div>
+              )}
+
               <div>
                 <div data-testid={`track-item-${track.id}-title`}>
                   <strong>{track.title}</strong>
@@ -112,7 +130,10 @@ const TrackList = ({
         <EditTrackModal
           track={editingTrack}
           onClose={() => setEditingTrack(null)}
-          onSave={fetchTracks}
+          onSave={() => {
+            fetchTracks();
+            setEditingTrack(null);
+          }}
         />
       )}
 
@@ -123,7 +144,9 @@ const TrackList = ({
         >
           <div className="bg-white p-4 rounded w-full max-w-sm">
             <h2 className="text-lg font-semibold mb-2">Delete Track</h2>
-            <p className="mb-4">Are you sure you want to delete "{trackToDelete.title}"?</p>
+            <p className="mb-4">
+              Are you sure you want to delete "{trackToDelete.title}"?
+            </p>
             <div className="flex justify-end gap-2">
               <button
                 data-testid="cancel-delete"
