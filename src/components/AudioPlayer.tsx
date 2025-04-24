@@ -12,14 +12,35 @@ const AudioPlayer = ({ id, src, isPlaying, onPlay, onPause }: Props) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [progress, setProgress] = useState(0)
 
+  const fullAudioSrc = `${import.meta.env.VITE_API_URL}/uploads/${src}`
+
   useEffect(() => {
-    if (!audioRef.current) return
-    if (isPlaying) {
-      audioRef.current.play()
-    } else {
-      audioRef.current.pause()
+    const audio = audioRef.current
+    if (!audio) return
+
+    const handlePlay = () => {
+      audio.play().catch((err) => {
+        console.error('Playback error:', err)
+      })
     }
-  }, [isPlaying])
+
+    if (isPlaying) {
+      if (audio.readyState >= 3) {
+        // Если уже готов — просто играем
+        handlePlay()
+      } else {
+        // Если нет — ждём canplay
+        audio.addEventListener('canplay', handlePlay, { once: true })
+      }
+    } else {
+      audio.pause()
+    }
+
+    // Чистим слушатель при размонтировании или переключении
+    return () => {
+      audio.removeEventListener('canplay', handlePlay)
+    }
+  }, [isPlaying, fullAudioSrc]) // важно следить за fullAudioSrc
 
   const handleTimeUpdate = () => {
     const audio = audioRef.current
@@ -31,9 +52,10 @@ const AudioPlayer = ({ id, src, isPlaying, onPlay, onPause }: Props) => {
 
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
+      const audio = audioRef.current
+      if (audio) {
+        audio.pause()
+        audio.currentTime = 0
       }
     }
   }, [])
@@ -41,10 +63,12 @@ const AudioPlayer = ({ id, src, isPlaying, onPlay, onPause }: Props) => {
   return (
     <div data-testid={`audio-player-${id}`} className="mt-2 w-full">
       <audio
+       key={fullAudioSrc}
         ref={audioRef}
-        src={src}
+        src={fullAudioSrc}
         onTimeUpdate={handleTimeUpdate}
         onEnded={onPause}
+        preload="auto"
       />
 
       <div className="flex items-center gap-2">
