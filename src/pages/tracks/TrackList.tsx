@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react'
-import { getTracks, deleteTrack } from '../../api/tracks'
-import EditTrackModal from '../../components/EditTrackModal'
-import AudioPlayer from '../../components/AudioPlayer'
-import { Track } from '../../types'
-import { toast } from 'react-hot-toast'
+import { useEffect, useState } from 'react';
+import { getTracks, deleteTrack } from '../../api/tracks';
+import EditTrackModal from '../../components/EditTrackModal';
+import AudioPlayer from '../../components/AudioPlayer';
+import { Track } from '../../types';
+import { toast } from 'react-hot-toast';
 
 type Props = {
-  page: number
-  limit: number
-  sort: string
-  order: 'asc' | 'desc'
-  search: string
-  genre: string
-  setTotalPages: (totalPages: number) => void
-}
+  page: number;
+  limit: number;
+  sort: string;
+  order: 'asc' | 'desc';
+  search: string;
+  genre: string;
+  setTotalPages: (totalPages: number) => void;
+};
 
 const TrackList = ({
   page,
@@ -24,32 +24,32 @@ const TrackList = ({
   genre,
   setTotalPages,
 }: Props) => {
-  const [tracks, setTracks] = useState<Track[]>([])
-  const [loading, setLoading] = useState(true)
-  const [editingTrack, setEditingTrack] = useState<Track | null>(null)
-  const [trackToDelete, setTrackToDelete] = useState<Track | null>(null)
-  const [deleting, setDeleting] = useState(false)
-  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null)
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingTrack, setEditingTrack] = useState<Track | null>(null);
+  const [trackToDelete, setTrackToDelete] = useState<Track | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
 
   const fetchTracks = async () => {
     try {
-      setLoading(true)
-      const params = { page, limit, sort, order, search, genre }
-      const response = await getTracks(params)
-      setTracks(response.data)
-      setTotalPages(response.meta.totalPages)
+      setLoading(true);
+      const params = { page, limit, sort, order, search, genre };
+      const response = await getTracks(params);
+      setTracks(response.data);
+      setTotalPages(response.meta.totalPages);
     } catch (error) {
-      console.error('Failed to fetch tracks:', error)
+      console.error('Failed to fetch tracks:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchTracks()
-  }, [page, limit, sort, order, search, genre])
+    fetchTracks();
+  }, [page, limit, sort, order, search, genre]);
 
-  if (loading) return <div data-testid="loading-tracks">Loading tracks...</div>
+  if (loading) return <div data-testid="loading-tracks">Loading tracks...</div>;
 
   return (
     <div data-testid="track-list">
@@ -60,10 +60,21 @@ const TrackList = ({
           data-testid={`track-item-${track.id}`}
         >
           <div className="flex justify-between items-center">
-            <div>
-              <div data-testid={`track-item-${track.id}-title`}><strong>{track.title}</strong></div>
-              <div data-testid={`track-item-${track.id}-artist`}>{track.artist}</div>
-              <div>{track.album}</div>
+            <div className="flex items-center gap-4">
+              <img
+                src={track.coverImage || '/default-cover.jpg'}
+                alt="Cover"
+                className="w-16 h-16 object-cover rounded"
+              />
+              <div>
+                <div data-testid={`track-item-${track.id}-title`}>
+                  <strong>{track.title}</strong>
+                </div>
+                <div data-testid={`track-item-${track.id}-artist`}>
+                  {track.artist}
+                </div>
+                <div>{track.album}</div>
+              </div>
             </div>
             <div className="flex gap-2">
               <button
@@ -125,15 +136,15 @@ const TrackList = ({
                 data-testid="confirm-delete"
                 onClick={async () => {
                   try {
-                    setDeleting(true)
-                    await deleteTrack(trackToDelete.id)
-                    await fetchTracks()
-                    toast.success('Track deleted successfully')
+                    setDeleting(true);
+                    await deleteTrack(trackToDelete.id);
+                    await fetchTracks();
+                    toast.success('Track deleted successfully');
                   } catch {
-                    toast.error('Failed to delete track')
+                    toast.error('Failed to delete track');
                   } finally {
-                    setTrackToDelete(null)
-                    setDeleting(false)
+                    setTrackToDelete(null);
+                    setDeleting(false);
                   }
                 }}
                 className="bg-red-500 text-white px-4 py-2 rounded"
@@ -146,7 +157,7 @@ const TrackList = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default TrackList
+export default TrackList;
