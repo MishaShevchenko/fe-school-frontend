@@ -9,7 +9,6 @@ type Props = {
   page: number;
   limit: number;
   sort: string;
-  order: 'asc' | 'desc';
   search: string;
   genre: string;
   setTotalPages: (totalPages: number) => void;
@@ -19,7 +18,6 @@ const TrackList = ({
   page,
   limit,
   sort,
-  order,
   search,
   genre,
   setTotalPages,
@@ -35,7 +33,7 @@ const TrackList = ({
   const fetchTracks = async () => {
     try {
       setLoading(true);
-      const params = { page, limit, sort, order, search, genre };
+      const params = { page, limit, sort, search, genre };
       const response = await getTracks(params);
       setTracks(response.data);
       setTotalPages(response.meta.totalPages);
@@ -48,7 +46,7 @@ const TrackList = ({
 
   useEffect(() => {
     fetchTracks();
-  }, [page, limit, sort, order, search, genre]);
+  }, [page, limit, sort, search, genre]);
 
   const getSafeImageSrc = (url?: string) => {
     if (!url || typeof url !== 'string' || !/^https?:\/\//.test(url)) {

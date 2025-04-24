@@ -130,7 +130,6 @@ function TracksPage() {
         page={page}
         limit={limit}
         sort={sort}
-        order={order}
         search={search}
         genre={genre}
         setTotalPages={setTotalPages}

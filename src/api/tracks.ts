@@ -27,7 +27,6 @@ type GetTracksParams = {
 
 export const getTracks = async (params: GetTracksParams = {}) => {
   const response = await api.get('api/tracks', { params });
-  console.log('Tracks from server:', response.data)
 
   return response.data;
 };
